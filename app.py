@@ -47,7 +47,7 @@ def predict():
 
     if file:
         # Save the uploaded image file temporarily
-        filepath = os.path.join("uploads", file.filename)
+        filepath = os.path.join("static", file.filename)
         file.save(filepath)
 
         # Preprocess the image and make a prediction
