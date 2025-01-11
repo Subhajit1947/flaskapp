@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
-import requests
+# import requests
 from flask_cors import CORS
 import os
 import cv2
+import urllib.request
 import numpy as np
 import tensorflow as tf
 import tf_keras
@@ -27,8 +28,11 @@ model = tf_keras.models.load_model(
 
 # Define a function to preprocess the uploaded image
 def load_and_preprocess_image(image_path):
-    img = cv2.imread(image_path)  # Load the image
-
+    # img = cv2.imread(image_path)  # Load the image
+    req = urllib.request.urlopen(image_path)
+    arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
+    img = cv2.imdecode(arr, -1)
+    
     img_resized = cv2.resize(img, (224, 224))  # Resize to 224x224 as required by the model
     img_scaled = img_resized / 255.0  # Scale pixel values to [0, 1]
     return np.expand_dims(img_scaled, axis=0)  # Add a batch dimension: (1, 224, 224, 3)
@@ -53,7 +57,9 @@ def predict():
         file.save(filepath)
         # Preprocess the image and make a prediction
         try:
-            img_for_prediction = load_and_preprocess_image(filepath)
+            print(file.filename)
+            file_url=f'https://flaskapp-dzo0.onrender.com/static/{file.filename}'
+            img_for_prediction = load_and_preprocess_image(file_url)
             predicted_probabilities = model.predict(img_for_prediction)
 
             # Get the predicted class label
@@ -71,7 +77,7 @@ def predict():
             # Return the result as JSON
             return jsonify({"disease": predicted_disease, "confidence": confidence})
         except Exception as e:
-            return jsonify({"error": e}),500
+            return jsonify({"error": 'error'}),500
 # def add_cors_headers(response):
 #     response.headers["Access-Control-Allow-Origin"] = "https://derma-diagnosis.vercel.app"
 #     response.headers["Access-Control-Allow-Methods"] = "POST,OPTIONS"
