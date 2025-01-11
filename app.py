@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import requests
 from flask_cors import CORS
 import os
 import cv2
@@ -27,6 +28,7 @@ model = tf_keras.models.load_model(
 # Define a function to preprocess the uploaded image
 def load_and_preprocess_image(image_path):
     img = cv2.imread(image_path)  # Load the image
+
     img_resized = cv2.resize(img, (224, 224))  # Resize to 224x224 as required by the model
     img_scaled = img_resized / 255.0  # Scale pixel values to [0, 1]
     return np.expand_dims(img_scaled, axis=0)  # Add a batch dimension: (1, 224, 224, 3)
@@ -49,26 +51,27 @@ def predict():
         # Save the uploaded image file temporarily
         filepath = os.path.join("static", file.filename)
         file.save(filepath)
-
         # Preprocess the image and make a prediction
-        img_for_prediction = load_and_preprocess_image(filepath)
-        predicted_probabilities = model.predict(img_for_prediction)
+        try:
+            img_for_prediction = load_and_preprocess_image(filepath)
+            predicted_probabilities = model.predict(img_for_prediction)
 
-        # Get the predicted class label
-        predicted_class = np.argmax(predicted_probabilities)
+            # Get the predicted class label
+            predicted_class = np.argmax(predicted_probabilities)
 
-        # Mapping class indices back to disease names
-        label_to_disease = {
-            0: 'Cellulitis', 1: 'Impetigo', 2: 'Athlete-Foot', 3: 'Nail-Fungus',
-            4: 'Ringworm', 5: 'Cutaneous-Larva-Migrans', 6: 'Chickenpox', 7: 'Shingles'
-        }
+            # Mapping class indices back to disease names
+            label_to_disease = {
+                0: 'Cellulitis', 1: 'Impetigo', 2: 'Athlete-Foot', 3: 'Nail-Fungus',
+                4: 'Ringworm', 5: 'Cutaneous-Larva-Migrans', 6: 'Chickenpox', 7: 'Shingles'
+            }
 
-        predicted_disease = label_to_disease[predicted_class]
-        confidence = round(np.max(predicted_probabilities) * 100, 2)
+            predicted_disease = label_to_disease[predicted_class]
+            confidence = round(np.max(predicted_probabilities) * 100, 2)
 
-        # Return the result as JSON
-        return jsonify({"disease": predicted_disease, "confidence": confidence})
-    
+            # Return the result as JSON
+            return jsonify({"disease": predicted_disease, "confidence": confidence})
+        except Exception as e:
+            return jsonify({"error": e}),500
 # def add_cors_headers(response):
 #     response.headers["Access-Control-Allow-Origin"] = "https://derma-diagnosis.vercel.app"
 #     response.headers["Access-Control-Allow-Methods"] = "POST,OPTIONS"
