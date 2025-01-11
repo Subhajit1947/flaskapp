@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 import tf_keras
 import tensorflow_hub as hub
-from PIL import Image
+# from PIL import Image
 
 # Initialize Flask app and enable CORS
 app = Flask(__name__)
