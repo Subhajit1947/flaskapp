@@ -28,10 +28,10 @@ model = tf_keras.models.load_model(
 
 # Define a function to preprocess the uploaded image
 def load_and_preprocess_image(image_path):
-    # img = cv2.imread(image_path)  # Load the image
-    req = urllib.request.urlopen(image_path)
-    arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-    img = cv2.imdecode(arr, -1)
+    img = cv2.imread(image_path)  # Load the image
+    # req = urllib.request.urlopen(image_path)
+    # arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
+    # img = cv2.imdecode(arr, -1)
     
     img_resized = cv2.resize(img, (224, 224))  # Resize to 224x224 as required by the model
     img_scaled = img_resized / 255.0  # Scale pixel values to [0, 1]
@@ -58,8 +58,9 @@ def predict():
         # Preprocess the image and make a prediction
         try:
             print(file.filename)
-            file_url=f'https://flaskapp-dzo0.onrender.com/static/{file.filename}'
-            img_for_prediction = load_and_preprocess_image(file_url)
+            # file_url=f'https://flaskapp-dzo0.onrender.com/static/{file.filename}'
+            file_path=f'/opt/render/project/src/{filepath}'
+            img_for_prediction = load_and_preprocess_image(file_path)
             predicted_probabilities = model.predict(img_for_prediction)
 
             # Get the predicted class label
